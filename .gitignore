@@ -1,0 +1,20 @@
+# Local/private configuration
+config/ket_noi.php
+config/email.php
+
+# Generated deployment archives
+*.zip
+
+# Temporary/debug files used during hosting setup
+debug-*.php
+ping.php
+test.php
+images.php
+kiem-tra-hosting.php
+bo-sung-bang-hosting.sql
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

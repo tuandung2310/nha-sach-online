@@ -1,0 +1,217 @@
+/* ============================================
+   CSS DÙNG RIÊNG CHO KHU VỰC ADMIN
+   (đi kèm với style.css chính, không thay thế)
+   ============================================ */
+
+.khung-admin {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ===== MENU BÊN TRÁI ===== */
+.menu-admin {
+    width: 220px;
+    background: #2b2b2b;
+    color: #fff;
+    padding: 20px;
+}
+
+.menu-admin h2 {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.menu-admin ul {
+    list-style: none;
+}
+
+.menu-admin li a {
+    display: block;
+    padding: 10px 12px;
+    color: #ccc;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.menu-admin li a:hover,
+.menu-admin li a.dang-chon {
+    background: #d70018;
+    color: #fff;
+}
+
+.thong-tin-admin {
+    margin-top: 40px;
+    font-size: 13px;
+    color: #aaa;
+    border-top: 1px solid #444;
+    padding-top: 16px;
+}
+
+.thong-tin-admin a {
+    color: #d70018;
+}
+
+/* ===== NỘI DUNG CHÍNH ===== */
+.noi-dung-admin {
+    flex: 1;
+    padding: 24px 32px;
+    background: #f5f5f5;
+}
+
+.tieu-de-trang-admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+/* ===== Ô THỐNG KÊ (dashboard) ===== */
+.luoi-thong-ke {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.the-thong-ke {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.the-thong-ke .so-lieu {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #d70018;
+}
+
+.the-thong-ke .nhan {
+    font-size: 13px;
+    color: #888;
+}
+
+/* ===== FORM TÌM KIẾM ADMIN ===== */
+.form-tim-kiem-admin {
+    margin-bottom: 16px;
+}
+
+.form-tim-kiem-admin input {
+    padding: 8px;
+    width: 250px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-tim-kiem-admin button {
+    padding: 8px 16px;
+    background: #d70018;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 6px;
+}
+
+/* ===== BẢNG DỮ LIỆU (sách, đơn hàng...) ===== */
+.bang-admin {
+    width: 100%;
+    background: #fff;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.bang-admin th,
+.bang-admin td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.bang-admin th {
+    background: #f0f0f0;
+}
+
+.anh-nho-admin {
+    width: 50px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.cot-hanh-dong a {
+    margin-right: 8px;
+    color: #d70018;
+}
+
+/* ===== FORM THÊM/SỬA SÁCH ===== */
+.form-admin-sach {
+    max-width: 500px;
+    background: #fff;
+    padding: 24px;
+    border-radius: 8px;
+}
+
+.form-admin-sach label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.form-admin-sach input,
+.form-admin-sach select,
+.form-admin-sach textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-admin-sach button {
+    margin-top: 20px;
+}
+
+.anh-bia-hien-tai {
+    margin-bottom: 8px;
+}
+
+/* ===== TRANG ĐĂNG NHẬP ADMIN (riêng, không có sidebar) ===== */
+.trang-dang-nhap-admin {
+    max-width: 380px;
+    margin: 80px auto;
+    background: #fff;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.trang-dang-nhap-admin form {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.trang-dang-nhap-admin label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.trang-dang-nhap-admin input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.trang-dang-nhap-admin button {
+    width: 100%;
+    margin-top: 20px;
+}
