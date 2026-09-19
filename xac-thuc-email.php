@@ -17,6 +17,26 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $loi[] = 'Không tìm thấy email cần xác thực.';
 }
 
+if (isset($_GET['kiem_tra']) && $_GET['kiem_tra'] === '1') {
+    header('Content-Type: application/json; charset=UTF-8');
+
+    if (!empty($loi)) {
+        echo json_encode(['ok' => false, 'da_xac_thuc' => false]);
+        exit;
+    }
+
+    $cau_lenh = $ket_noi->prepare('SELECT email_da_xac_thuc FROM nguoi_dung WHERE email = :email');
+    $cau_lenh->execute(['email' => $email]);
+    $nguoi_dung_kiem_tra = $cau_lenh->fetch();
+
+    echo json_encode([
+        'ok' => (bool) $nguoi_dung_kiem_tra,
+        'da_xac_thuc' => !empty($nguoi_dung_kiem_tra['email_da_xac_thuc']),
+        'login_url' => URL_GOC . '/dang-nhap.php',
+    ]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($loi)) {
     $hanh_dong = $_POST['hanh_dong'] ?? 'xac_thuc';
 
@@ -88,6 +108,10 @@ require_once 'includes/header.php';
     <h1>Xác thực Gmail</h1>
     <p>Nhập mã 6 số đã gửi tới <?= htmlspecialchars($email) ?>.</p>
 
+    <div id="thong-bao-admin-xac-thuc" class="thong-bao-thanh-cong" style="display:none">
+        Tài khoản đã được admin xác thực. Bạn sẽ được chuyển về trang đăng nhập sau vài giây.
+    </div>
+
     <?php if ($thong_bao): ?>
         <div class="thong-bao-thanh-cong"><?= htmlspecialchars($thong_bao) ?></div>
     <?php endif; ?>
@@ -114,5 +138,40 @@ require_once 'includes/header.php';
 
     <p><a href="<?= URL_GOC ?>/dang-nhap.php">Quay lại đăng nhập</a></p>
 </div>
+
+<?php if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)): ?>
+<script>
+(function () {
+    const email = <?= json_encode($email) ?>;
+    const hopThongBao = document.getElementById('thong-bao-admin-xac-thuc');
+    const urlDangNhap = <?= json_encode(URL_GOC . '/dang-nhap.php') ?>;
+    const urlKiemTra = <?= json_encode(URL_GOC . '/xac-thuc-email.php') ?>;
+
+    async function kiemTraXacThuc() {
+        try {
+            const phanHoi = await fetch(
+                urlKiemTra + '?kiem_tra=1&email=' + encodeURIComponent(email) + '&t=' + Date.now(),
+                { cache: 'no-store' }
+            );
+            const duLieu = await phanHoi.json();
+
+            if (duLieu.ok && duLieu.da_xac_thuc) {
+                hopThongBao.style.display = 'block';
+                setTimeout(function () {
+                    window.location.href = urlDangNhap;
+                }, 2500);
+                return;
+            }
+
+            setTimeout(kiemTraXacThuc, 5000);
+        } catch (e) {
+            setTimeout(kiemTraXacThuc, 8000);
+        }
+    }
+
+    setTimeout(kiemTraXacThuc, 3000);
+})();
+</script>
+<?php endif; ?>
 
 <?php require_once 'includes/footer.php'; ?>
