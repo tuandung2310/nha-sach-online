@@ -11,6 +11,62 @@ if (empty($_SESSION['admin_id']) || !la_admin()) {
     exit;
 }
 
+$thong_bao = '';
+$loi = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $hanh_dong = $_POST['hanh_dong'] ?? '';
+    $nguoi_dung_id = (int) ($_POST['nguoi_dung_id'] ?? 0);
+
+    if ($hanh_dong === 'xoa_nguoi_dung' && $nguoi_dung_id > 0) {
+        $cau_lenh = $ket_noi->prepare('SELECT * FROM nguoi_dung WHERE id = :id');
+        $cau_lenh->execute(['id' => $nguoi_dung_id]);
+        $nguoi_dung_can_xoa = $cau_lenh->fetch();
+
+        if (!$nguoi_dung_can_xoa) {
+            $loi = 'Không tìm thấy tài khoản cần xóa.';
+        } else {
+            $dem_don = $ket_noi->prepare('SELECT COUNT(*) FROM don_hang WHERE nguoi_dung_id = :id');
+            $dem_don->execute(['id' => $nguoi_dung_id]);
+            $so_don_hang = (int) $dem_don->fetchColumn();
+
+            $dem_danh_gia = $ket_noi->prepare('SELECT COUNT(*) FROM danh_gia WHERE nguoi_dung_id = :id');
+            $dem_danh_gia->execute(['id' => $nguoi_dung_id]);
+            $so_danh_gia = (int) $dem_danh_gia->fetchColumn();
+
+            if ($so_don_hang === 0 && $so_danh_gia === 0) {
+                $xoa = $ket_noi->prepare('DELETE FROM nguoi_dung WHERE id = :id');
+                $xoa->execute(['id' => $nguoi_dung_id]);
+                $thong_bao = 'Đã xóa vĩnh viễn tài khoản chưa có đơn hàng/đánh giá.';
+            } else {
+                $email_moi = 'deleted_user_' . $nguoi_dung_id . '_' . time() . '@deleted.local';
+                $mat_khau_ngau_nhien = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
+
+                $cap_nhat = $ket_noi->prepare("
+                    UPDATE nguoi_dung
+                    SET ho_ten = :ho_ten,
+                        email = :email,
+                        mat_khau = :mat_khau,
+                        so_dien_thoai = NULL,
+                        dia_chi = NULL,
+                        email_da_xac_thuc = 0,
+                        ma_xac_thuc = NULL,
+                        ma_xac_thuc_het_han = NULL
+                    WHERE id = :id
+                ");
+                $cap_nhat->execute([
+                    'ho_ten' => 'Tài khoản đã xóa',
+                    'email' => $email_moi,
+                    'mat_khau' => $mat_khau_ngau_nhien,
+                    'id' => $nguoi_dung_id,
+                ]);
+
+                $thong_bao = 'Tài khoản đã có dữ liệu nên đã được ẩn và giải phóng email cũ để đăng ký lại.';
+            }
+        }
+    }
+}
+
 $tu_khoa = trim($_GET['tu_khoa'] ?? '');
 
 $sql = "
@@ -67,6 +123,14 @@ $danh_sach_nguoi_dung = $cau_lenh->fetchAll();
             <h1>Quản lý người dùng (<?= count($danh_sach_nguoi_dung) ?>)</h1>
         </div>
 
+        <?php if ($thong_bao): ?>
+            <div class="thong-bao-thanh-cong"><?= htmlspecialchars($thong_bao) ?></div>
+        <?php endif; ?>
+
+        <?php if ($loi): ?>
+            <div class="thong-bao-loi"><?= htmlspecialchars($loi) ?></div>
+        <?php endif; ?>
+
         <form method="GET" class="form-tim-kiem-admin">
             <input type="text" name="tu_khoa" placeholder="Tìm theo tên hoặc email..."
                    value="<?= htmlspecialchars($tu_khoa) ?>">
@@ -90,10 +154,14 @@ $danh_sach_nguoi_dung = $cau_lenh->fetchAll();
                         <th>Đơn hàng</th>
                         <th>Đánh giá</th>
                         <th>Ngày tạo</th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($danh_sach_nguoi_dung as $nguoi_dung): ?>
+                        <?php
+                        $la_tai_khoan_da_xoa = str_contains($nguoi_dung['email'], '@deleted.local');
+                        ?>
                         <tr>
                             <td>#<?= $nguoi_dung['id'] ?></td>
                             <td><?= htmlspecialchars($nguoi_dung['ho_ten']) ?></td>
@@ -109,6 +177,18 @@ $danh_sach_nguoi_dung = $cau_lenh->fetchAll();
                             <td><?= (int) $nguoi_dung['so_don_hang'] ?></td>
                             <td><?= (int) $nguoi_dung['so_danh_gia'] ?></td>
                             <td><?= !empty($nguoi_dung['ngay_tao']) ? date('d/m/Y H:i', strtotime($nguoi_dung['ngay_tao'])) : 'Không rõ' ?></td>
+                            <td>
+                                <?php if ($la_tai_khoan_da_xoa): ?>
+                                    <span class="nhan-admin nhan-admin--cho">Đã ẩn</span>
+                                <?php else: ?>
+                                    <form method="POST" class="form-xoa-nguoi-dung-admin"
+                                          onsubmit="return confirm('Xóa tài khoản này? Nếu đã có đơn hàng/đánh giá, hệ thống sẽ ẩn tài khoản và giải phóng email để đăng ký lại.');">
+                                        <input type="hidden" name="hanh_dong" value="xoa_nguoi_dung">
+                                        <input type="hidden" name="nguoi_dung_id" value="<?= $nguoi_dung['id'] ?>">
+                                        <button type="submit" class="nut-xoa-nguoi-dung-admin">Xóa</button>
+                                    </form>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

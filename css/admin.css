@@ -178,6 +178,19 @@
     vertical-align: middle;
 }
 
+.form-xoa-nguoi-dung-admin {
+    margin: 0;
+}
+
+.nut-xoa-nguoi-dung-admin {
+    padding: 6px 10px;
+    background: #c0392b;
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
 /* ===== FORM THÊM/SỬA SÁCH ===== */
 .form-admin-sach {
     max-width: 500px;
