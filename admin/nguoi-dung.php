@@ -1,0 +1,121 @@
+<?php
+require_once '../config/ket_noi.php';
+require_once '../includes/ham_chung.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (empty($_SESSION['admin_id']) || !la_admin()) {
+    header('Location: ' . URL_GOC . '/admin/dang-nhap.php');
+    exit;
+}
+
+$tu_khoa = trim($_GET['tu_khoa'] ?? '');
+
+$sql = "
+    SELECT
+        nguoi_dung.*,
+        COUNT(DISTINCT don_hang.id) AS so_don_hang,
+        COUNT(DISTINCT danh_gia.id) AS so_danh_gia
+    FROM nguoi_dung
+    LEFT JOIN don_hang ON don_hang.nguoi_dung_id = nguoi_dung.id
+    LEFT JOIN danh_gia ON danh_gia.nguoi_dung_id = nguoi_dung.id
+";
+
+$tham_so = [];
+if ($tu_khoa !== '') {
+    $sql .= " WHERE nguoi_dung.ho_ten LIKE :tu_khoa OR nguoi_dung.email LIKE :tu_khoa";
+    $tham_so['tu_khoa'] = '%' . $tu_khoa . '%';
+}
+
+$sql .= " GROUP BY nguoi_dung.id ORDER BY nguoi_dung.id DESC";
+
+$cau_lenh = $ket_noi->prepare($sql);
+$cau_lenh->execute($tham_so);
+$danh_sach_nguoi_dung = $cau_lenh->fetchAll();
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng</title>
+    <link rel="stylesheet" href="<?= URL_GOC ?>/css/style.css">
+    <link rel="stylesheet" href="<?= URL_GOC ?>/css/admin.css">
+</head>
+<body>
+
+<div class="khung-admin">
+    <aside class="menu-admin">
+        <h2>📚 Quản trị</h2>
+        <ul>
+            <li><a href="index.php">Tổng quan</a></li>
+            <li><a href="sach.php">Quản lý sách</a></li>
+            <li><a href="the-loai.php">Quản lý thể loại</a></li>
+            <li><a href="don-hang.php">Quản lý đơn hàng</a></li>
+            <li><a href="nguoi-dung.php" class="dang-chon">Quản lý người dùng</a></li>
+        </ul>
+        <p class="thong-tin-admin">
+            Xin chào, <?= htmlspecialchars($_SESSION['ten_nguoi_dung']) ?><br>
+            <a href="<?= URL_GOC ?>/dang-xuat.php">Đăng xuất</a>
+        </p>
+    </aside>
+
+    <main class="noi-dung-admin">
+        <div class="tieu-de-trang-admin">
+            <h1>Quản lý người dùng (<?= count($danh_sach_nguoi_dung) ?>)</h1>
+        </div>
+
+        <form method="GET" class="form-tim-kiem-admin">
+            <input type="text" name="tu_khoa" placeholder="Tìm theo tên hoặc email..."
+                   value="<?= htmlspecialchars($tu_khoa) ?>">
+            <button type="submit">Tìm</button>
+            <?php if ($tu_khoa !== ''): ?>
+                <a href="nguoi-dung.php" class="nut-lam-moi-admin">Xóa lọc</a>
+            <?php endif; ?>
+        </form>
+
+        <?php if (empty($danh_sach_nguoi_dung)): ?>
+            <p>Không tìm thấy người dùng nào.</p>
+        <?php else: ?>
+            <table class="bang-admin bang-nguoi-dung-admin">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Xác thực Gmail</th>
+                        <th>Đơn hàng</th>
+                        <th>Đánh giá</th>
+                        <th>Ngày tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($danh_sach_nguoi_dung as $nguoi_dung): ?>
+                        <tr>
+                            <td>#<?= $nguoi_dung['id'] ?></td>
+                            <td><?= htmlspecialchars($nguoi_dung['ho_ten']) ?></td>
+                            <td><?= htmlspecialchars($nguoi_dung['email']) ?></td>
+                            <td><?= htmlspecialchars($nguoi_dung['so_dien_thoai'] ?: 'Chưa có') ?></td>
+                            <td>
+                                <?php if (!empty($nguoi_dung['email_da_xac_thuc'])): ?>
+                                    <span class="nhan-admin nhan-admin--ok">Đã xác thực</span>
+                                <?php else: ?>
+                                    <span class="nhan-admin nhan-admin--cho">Chưa xác thực</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= (int) $nguoi_dung['so_don_hang'] ?></td>
+                            <td><?= (int) $nguoi_dung['so_danh_gia'] ?></td>
+                            <td><?= !empty($nguoi_dung['ngay_tao']) ? date('d/m/Y H:i', strtotime($nguoi_dung['ngay_tao'])) : 'Không rõ' ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </main>
+</div>
+
+</body>
+</html>

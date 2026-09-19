@@ -99,6 +99,7 @@ else {
             <li><a href="sach.php">Quản lý sách</a></li>
             <li><a href="the-loai.php">Quản lý thể loại</a></li>
             <li><a href="don-hang.php" class="dang-chon">Quản lý đơn hàng</a></li>
+            <li><a href="nguoi-dung.php">Quản lý người dùng</a></li>
         </ul>
         <p class="thong-tin-admin">
             Xin chào, <?= htmlspecialchars($_SESSION['ten_nguoi_dung']) ?><br>

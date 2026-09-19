@@ -147,6 +147,37 @@
     color: #d70018;
 }
 
+.nut-lam-moi-admin {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 8px 12px;
+    background: #555;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.nhan-admin {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.nhan-admin--ok {
+    background: #eafaf1;
+    color: #1e8449;
+}
+
+.nhan-admin--cho {
+    background: #fff4e5;
+    color: #b7791f;
+}
+
+.bang-nguoi-dung-admin td {
+    vertical-align: middle;
+}
+
 /* ===== FORM THÊM/SỬA SÁCH ===== */
 .form-admin-sach {
     max-width: 500px;
