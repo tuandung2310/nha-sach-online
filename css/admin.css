@@ -178,8 +178,25 @@
     vertical-align: middle;
 }
 
+.cot-thao-tac-nguoi-dung {
+    min-width: 150px;
+}
+
+.form-thao-tac-nguoi-dung-admin,
 .form-xoa-nguoi-dung-admin {
     margin: 0;
+    display: inline-block;
+    margin-right: 6px;
+    margin-bottom: 4px;
+}
+
+.nut-xac-thuc-nguoi-dung-admin {
+    padding: 6px 10px;
+    background: #1e8449;
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .nut-xoa-nguoi-dung-admin {

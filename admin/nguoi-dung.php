@@ -18,12 +18,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hanh_dong = $_POST['hanh_dong'] ?? '';
     $nguoi_dung_id = (int) ($_POST['nguoi_dung_id'] ?? 0);
 
-    if ($hanh_dong === 'xoa_nguoi_dung' && $nguoi_dung_id > 0) {
+    if ($nguoi_dung_id <= 0) {
+        $loi = 'Tài khoản không hợp lệ.';
+    } elseif ($hanh_dong === 'xac_thuc_nguoi_dung') {
         $cau_lenh = $ket_noi->prepare('SELECT * FROM nguoi_dung WHERE id = :id');
         $cau_lenh->execute(['id' => $nguoi_dung_id]);
-        $nguoi_dung_can_xoa = $cau_lenh->fetch();
+        $nguoi_dung = $cau_lenh->fetch();
 
-        if (!$nguoi_dung_can_xoa) {
+        if (!$nguoi_dung) {
+            $loi = 'Không tìm thấy tài khoản cần xác thực.';
+        } elseif (str_contains($nguoi_dung['email'], '@deleted.local')) {
+            $loi = 'Không thể xác thực tài khoản đã bị ẩn.';
+        } else {
+            $cap_nhat = $ket_noi->prepare("
+                UPDATE nguoi_dung
+                SET email_da_xac_thuc = 1,
+                    ma_xac_thuc = NULL,
+                    ma_xac_thuc_het_han = NULL,
+                    ngay_xac_thuc = NOW()
+                WHERE id = :id
+            ");
+            $cap_nhat->execute(['id' => $nguoi_dung_id]);
+            $thong_bao = 'Đã xác thực thủ công tài khoản. Người dùng có thể đăng nhập ngay.';
+        }
+    } elseif ($hanh_dong === 'xoa_nguoi_dung') {
+        $cau_lenh = $ket_noi->prepare('SELECT * FROM nguoi_dung WHERE id = :id');
+        $cau_lenh->execute(['id' => $nguoi_dung_id]);
+        $nguoi_dung = $cau_lenh->fetch();
+
+        if (!$nguoi_dung) {
             $loi = 'Không tìm thấy tài khoản cần xóa.';
         } else {
             $dem_don = $ket_noi->prepare('SELECT COUNT(*) FROM don_hang WHERE nguoi_dung_id = :id');
@@ -161,6 +184,7 @@ $danh_sach_nguoi_dung = $cau_lenh->fetchAll();
                     <?php foreach ($danh_sach_nguoi_dung as $nguoi_dung): ?>
                         <?php
                         $la_tai_khoan_da_xoa = str_contains($nguoi_dung['email'], '@deleted.local');
+                        $da_xac_thuc = !empty($nguoi_dung['email_da_xac_thuc']);
                         ?>
                         <tr>
                             <td>#<?= $nguoi_dung['id'] ?></td>
@@ -168,7 +192,7 @@ $danh_sach_nguoi_dung = $cau_lenh->fetchAll();
                             <td><?= htmlspecialchars($nguoi_dung['email']) ?></td>
                             <td><?= htmlspecialchars($nguoi_dung['so_dien_thoai'] ?: 'Chưa có') ?></td>
                             <td>
-                                <?php if (!empty($nguoi_dung['email_da_xac_thuc'])): ?>
+                                <?php if ($da_xac_thuc): ?>
                                     <span class="nhan-admin nhan-admin--ok">Đã xác thực</span>
                                 <?php else: ?>
                                     <span class="nhan-admin nhan-admin--cho">Chưa xác thực</span>
@@ -177,11 +201,20 @@ $danh_sach_nguoi_dung = $cau_lenh->fetchAll();
                             <td><?= (int) $nguoi_dung['so_don_hang'] ?></td>
                             <td><?= (int) $nguoi_dung['so_danh_gia'] ?></td>
                             <td><?= !empty($nguoi_dung['ngay_tao']) ? date('d/m/Y H:i', strtotime($nguoi_dung['ngay_tao'])) : 'Không rõ' ?></td>
-                            <td>
+                            <td class="cot-thao-tac-nguoi-dung">
                                 <?php if ($la_tai_khoan_da_xoa): ?>
                                     <span class="nhan-admin nhan-admin--cho">Đã ẩn</span>
                                 <?php else: ?>
-                                    <form method="POST" class="form-xoa-nguoi-dung-admin"
+                                    <?php if (!$da_xac_thuc): ?>
+                                        <form method="POST" class="form-thao-tac-nguoi-dung-admin"
+                                              onsubmit="return confirm('Xác thực thủ công tài khoản này? Người dùng sẽ đăng nhập được ngay mà không cần mã Gmail.');">
+                                            <input type="hidden" name="hanh_dong" value="xac_thuc_nguoi_dung">
+                                            <input type="hidden" name="nguoi_dung_id" value="<?= $nguoi_dung['id'] ?>">
+                                            <button type="submit" class="nut-xac-thuc-nguoi-dung-admin">Xác thực</button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    <form method="POST" class="form-thao-tac-nguoi-dung-admin"
                                           onsubmit="return confirm('Xóa tài khoản này? Nếu đã có đơn hàng/đánh giá, hệ thống sẽ ẩn tài khoản và giải phóng email để đăng ký lại.');">
                                         <input type="hidden" name="hanh_dong" value="xoa_nguoi_dung">
                                         <input type="hidden" name="nguoi_dung_id" value="<?= $nguoi_dung['id'] ?>">
